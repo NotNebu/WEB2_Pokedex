@@ -12,10 +12,6 @@ const About = () => {
                 Projektet indeholder funktioner som søgning, typefiltrering, paginering, og detaljerede sider for hver Pokémon med information om stats, evner, højdevægt, udviklingskæde og meget mere.
                 Man kan også se shiny-versioner og alternative former, fx Mega Evolutions eller G-Max former.
             </p>
-
-            <p className="mb-4 text-gray-700 dark:text-gray-300">
-                En sammenligningsfunktion gør det muligt at se stats side om side mellem to Pokémoner, og detaljer vises med type-farvede baggrunde og animerede stat-bars.
-            </p>
         </div>
     )
 }
