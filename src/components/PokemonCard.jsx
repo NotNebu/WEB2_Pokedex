@@ -1,28 +1,28 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
 
 /**
  * Farver til forskellige Pokémon-typer (Tailwind utility-klasser)
  */
 const typeColors = {
-    grass: 'bg-green-200',
-    fire: 'bg-orange-300',
-    water: 'bg-blue-200',
-    electric: 'bg-yellow-200',
-    bug: 'bg-lime-200',
-    normal: 'bg-gray-200',
-    poison: 'bg-purple-200',
-    ground: 'bg-yellow-300',
-    fairy: 'bg-pink-200',
-    fighting: 'bg-red-300',
-    psychic: 'bg-pink-300',
-    rock: 'bg-yellow-400',
-    ghost: 'bg-indigo-300',
-    ice: 'bg-blue-100',
-    dragon: 'bg-indigo-400',
-    dark: 'bg-gray-600 text-white',
-    steel: 'bg-gray-300',
-    flying: 'bg-sky-200',
-}
+    grass: "bg-green-200",
+    fire: "bg-orange-300",
+    water: "bg-blue-200",
+    electric: "bg-yellow-200",
+    bug: "bg-lime-200",
+    normal: "bg-gray-200",
+    poison: "bg-purple-200",
+    ground: "bg-yellow-300",
+    fairy: "bg-pink-200",
+    fighting: "bg-red-300",
+    psychic: "bg-pink-300",
+    rock: "bg-yellow-400",
+    ghost: "bg-indigo-300",
+    ice: "bg-blue-100",
+    dragon: "bg-indigo-400",
+    dark: "bg-gray-600 text-white",
+    steel: "bg-gray-300",
+    flying: "bg-sky-200",
+};
 
 /**
  * PokemonCard Component
@@ -35,8 +35,8 @@ const typeColors = {
  */
 
 const PokemonCard = ({ pokemon }) => {
-    const primaryType = pokemon.types[0].type.name
-    const bgColor = typeColors[primaryType] || 'bg-white'
+    const primaryType = pokemon.types[0].type.name;
+    const bgColor = typeColors[primaryType] || "bg-white";
 
     return (
         <Link to={`/pokemon/${pokemon.name}`} className="holo-card-wrapper">
@@ -45,7 +45,7 @@ const PokemonCard = ({ pokemon }) => {
             >
                 {/* Billede */}
                 <img
-                    src={pokemon.sprites.other['official-artwork'].front_default}
+                    src={pokemon.sprites.other["official-artwork"].front_default}
                     alt={pokemon.name}
                     className="w-32 h-32 object-contain poke-img"
                 />
@@ -73,7 +73,7 @@ const PokemonCard = ({ pokemon }) => {
                 </div>
             </div>
         </Link>
-    )
-}
+    );
+};
 
-export default PokemonCard
+export default PokemonCard;

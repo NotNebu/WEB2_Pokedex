@@ -34,7 +34,7 @@ const Pagination = ({ onPrevious, onNext, prevUrl, nextUrl }) => {
                 </button>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default Pagination
+export default Pagination;

@@ -1,81 +1,87 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import PokemonCard from '../components/PokemonCard'
-import Pagination from '../components/Pagination'
-import SkeletonCard from '../components/SkeletonCard'
+import { useState, useEffect } from "react";
+import axios from "axios";
+import PokemonCard from "../components/PokemonCard";
+import Pagination from "../components/Pagination";
+import SkeletonCard from "../components/SkeletonCard";
 
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 12;
 
 const Pokedex = () => {
-    const [allPokemon, setAllPokemon] = useState([])
-    const [displayedPokemon, setDisplayedPokemon] = useState([])
-    const [searchTerm, setSearchTerm] = useState('')
-    const [typeFilter, setTypeFilter] = useState('all')
-    const [currentPage, setCurrentPage] = useState(1)
-    const [loading, setLoading] = useState(false)
+    const [allPokemon, setAllPokemon] = useState([]);
+    const [displayedPokemon, setDisplayedPokemon] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [typeFilter, setTypeFilter] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
 
     // Fetch all basic Pokémon list
     useEffect(() => {
         const fetchAll = async () => {
             try {
-                const res = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0')
-                setAllPokemon(res.data.results)
+                const res = await axios.get(
+                    "https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0",
+                );
+                setAllPokemon(res.data.results);
             } catch (err) {
-                console.error(err)
+                console.error(err);
             }
-        }
-        fetchAll()
-    }, [])
+        };
+        fetchAll();
+    }, []);
 
     // Recalculate list on filters or page
     useEffect(() => {
         const fetchDetails = async () => {
-            setLoading(true)
+            setLoading(true);
 
             // Apply search filter
-            let filtered = allPokemon.filter(p =>
-                p.name.toLowerCase().includes(searchTerm.toLowerCase())
-            )
+            let filtered = allPokemon.filter((p) =>
+                p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+            );
 
             // Filter by type
-            if (typeFilter !== 'all') {
+            if (typeFilter !== "all") {
                 try {
-                    const typeRes = await axios.get(`https://pokeapi.co/api/v2/type/${typeFilter}`)
-                    const typeNames = typeRes.data.pokemon.map(p => p.pokemon.name)
-                    filtered = filtered.filter(p => typeNames.includes(p.name))
+                    const typeRes = await axios.get(
+                        `https://pokeapi.co/api/v2/type/${typeFilter}`,
+                    );
+                    const typeNames = typeRes.data.pokemon.map((p) => p.pokemon.name);
+                    filtered = filtered.filter((p) => typeNames.includes(p.name));
                 } catch (err) {
-                    console.error('Failed to fetch type filter:', err)
+                    console.error("Failed to fetch type filter:", err);
                 }
             }
 
             // Slice for pagination
-            const start = (currentPage - 1) * ITEMS_PER_PAGE
-            const pageSlice = filtered.slice(start, start + ITEMS_PER_PAGE)
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const pageSlice = filtered.slice(start, start + ITEMS_PER_PAGE);
 
             // Fetch detailed data
             try {
-                const detailed = await Promise.all(pageSlice.map(p => axios.get(p.url)))
-                setDisplayedPokemon(detailed.map(res => res.data))
+                const detailed = await Promise.all(
+                    pageSlice.map((p) => axios.get(p.url)),
+                );
+                setDisplayedPokemon(detailed.map((res) => res.data));
             } catch (err) {
-                console.error('Failed to fetch Pokémon details:', err)
+                console.error("Failed to fetch Pokémon details:", err);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
         if (allPokemon.length > 0) {
-            fetchDetails()
+            fetchDetails();
         }
-    }, [searchTerm, typeFilter, currentPage, allPokemon])
+    }, [searchTerm, typeFilter, currentPage, allPokemon]);
 
     // Reset page when filters/search change
     useEffect(() => {
-        setCurrentPage(1)
-    }, [searchTerm, typeFilter])
+        setCurrentPage(1);
+    }, [searchTerm, typeFilter]);
 
-    const totalFiltered = allPokemon.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const totalFiltered = allPokemon.filter((p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
 
     return (
         <div className="p-6 max-w-6xl mx-auto text-gray-900 dark:text-white">
@@ -142,7 +148,7 @@ const Pokedex = () => {
                 </>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default Pokedex
+export default Pokedex;
