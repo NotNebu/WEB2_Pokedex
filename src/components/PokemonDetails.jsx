@@ -122,7 +122,7 @@ const PokemonDetails = () => {
                 {/* Header */}
                 <div className={`rounded-xl p-6 mb-6 ${typeBg} text-white shadow-lg`}>
                     <div className="flex flex-col md:flex-row items-center gap-6">
-                        {/* Ny API til Shiny Models, da PokeAPI kun har sprites versionen af Shiny Pokemons */}
+                        {/* Direkte CDN link til PokeAPI's GitHub til Shiny Models, da PokeAPI'ens REST API ikke har HD Shiny Models */}
                         <img
                             src={
                                 showShiny
