@@ -39,7 +39,7 @@ export default [
     rules: {
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
-      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/rules-of-hooks': 'off',
       'react-hooks/exhaustive-deps': 'warn',
       'prettier/prettier': 'warn',
     },

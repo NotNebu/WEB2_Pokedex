@@ -3,8 +3,7 @@ import axios from 'axios';
 import PokemonCard from '../components/PokemonCard';
 import Pagination from '../components/Pagination';
 import SkeletonCard from '../components/SkeletonCard';
-
-const ITEMS_PER_PAGE = 12;
+import PokemonModal from '../components/PokemonModal';
 
 const Pokedex = () => {
   const [allPokemon, setAllPokemon] = useState([]);
@@ -13,8 +12,19 @@ const Pokedex = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
 
-  // Fetch all basic Pokémon list
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -27,17 +37,18 @@ const Pokedex = () => {
     fetchAll();
   }, []);
 
-  // Recalculate list on filters or page
   useEffect(() => {
     const fetchDetails = async () => {
       setLoading(true);
 
-      // Apply search filter
       let filtered = allPokemon.filter((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+          p.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
-      // Filter by type
+      if (showOnlyFavorites) {
+        filtered = filtered.filter((p) => favorites.includes(p.name));
+      }
+
       if (typeFilter !== 'all') {
         try {
           const typeRes = await axios.get(`https://pokeapi.co/api/v2/type/${typeFilter}`);
@@ -48,11 +59,9 @@ const Pokedex = () => {
         }
       }
 
-      // Slice for pagination
-      const start = (currentPage - 1) * ITEMS_PER_PAGE;
-      const pageSlice = filtered.slice(start, start + ITEMS_PER_PAGE);
+      const start = (currentPage - 1) * itemsPerPage;
+      const pageSlice = filtered.slice(start, start + itemsPerPage);
 
-      // Fetch detailed data
       try {
         const detailed = await Promise.all(pageSlice.map((p) => axios.get(p.url)));
         setDisplayedPokemon(detailed.map((res) => res.data));
@@ -66,82 +75,119 @@ const Pokedex = () => {
     if (allPokemon.length > 0) {
       fetchDetails();
     }
-  }, [searchTerm, typeFilter, currentPage, allPokemon]);
+  }, [searchTerm, typeFilter, currentPage, itemsPerPage, allPokemon, favorites, showOnlyFavorites]);
 
-  // Reset page when filters/search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter]);
+  }, [searchTerm, typeFilter, itemsPerPage, showOnlyFavorites]);
 
-  const totalFiltered = allPokemon.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalFiltered = allPokemon
+      .filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter((p) => !showOnlyFavorites || favorites.includes(p.name));
 
   return (
-    <div className="p-6 max-w-6xl mx-auto text-gray-900 dark:text-white">
-      <h1 className="text-3xl font-bold mb-6 text-center">Pokédex</h1>
+      <div className="p-6 max-w-6xl mx-auto text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold mb-6 text-center">Pokédex</h1>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-center mb-8">
-        <input
-          type="text"
-          placeholder="Search Pokémon..."
-          className="w-full md:w-80 px-4 py-2 rounded shadow border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        {/* Filters */}
+        <div className="flex flex-col lg:flex-row flex-wrap gap-4 items-center justify-center mb-8">
+          <input
+              type="text"
+              placeholder="Search Pokémon..."
+              className="w-full md:w-80 px-4 py-2 rounded shadow border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-full md:w-64 px-4 py-2 rounded shadow border bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-        >
-          <option value="all">All Types</option>
-          <option value="normal">Normal</option>
-          <option value="fire">Fire</option>
-          <option value="water">Water</option>
-          <option value="grass">Grass</option>
-          <option value="electric">Electric</option>
-          <option value="ice">Ice</option>
-          <option value="fighting">Fighting</option>
-          <option value="poison">Poison</option>
-          <option value="ground">Ground</option>
-          <option value="flying">Flying</option>
-          <option value="psychic">Psychic</option>
-          <option value="bug">Bug</option>
-          <option value="rock">Rock</option>
-          <option value="ghost">Ghost</option>
-          <option value="dark">Dark</option>
-          <option value="dragon">Dragon</option>
-          <option value="steel">Steel</option>
-          <option value="fairy">Fairy</option>
-        </select>
-      </div>
-
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-            <SkeletonCard key={index} />
-          ))}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {displayedPokemon.map((pokemon) => (
-              <PokemonCard key={pokemon.id} pokemon={pokemon} />
+          <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full md:w-64 px-4 py-2 rounded shadow border bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          >
+            <option value="all">All Types</option>
+            {[
+              'normal', 'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison',
+              'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dark', 'dragon', 'steel', 'fairy'
+            ].map((type) => (
+                <option key={type} value={type}>{type[0].toUpperCase() + type.slice(1)}</option>
             ))}
+          </select>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <label htmlFor="itemsPerPage" className="text-sm font-medium">Show:</label>
+            <select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value === 9999) {
+                    const confirmShowAll = window.confirm(
+                        "⚠️ Showing all Pokémon may slow down the browser. Are you sure?"
+                    );
+                    if (!confirmShowAll) return;
+                  }
+                  setItemsPerPage(value);
+                }}
+                className="w-full md:w-48 px-4 py-2 rounded shadow border bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+            >
+              {[12, 24, 50, 100, 9999].map(n => (
+                  <option key={n} value={n}>{n === 9999 ? 'Show All' : `${n} per page`}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="flex justify-center mt-10">
-            <Pagination
-              onPrevious={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              onNext={() => setCurrentPage((p) => p + 1)}
-              prevUrl={currentPage > 1}
-              nextUrl={totalFiltered.length > currentPage * ITEMS_PER_PAGE}
-            />
-          </div>
-        </>
-      )}
-    </div>
+          <button
+              onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+              className={`px-4 py-2 rounded shadow font-semibold transition ${
+                  showOnlyFavorites ? 'bg-yellow-400 text-black' : 'bg-gray-300 dark:bg-gray-700'
+              }`}
+          >
+            {showOnlyFavorites ? 'Show All' : 'Only Favorites ⭐'}
+          </button>
+        </div>
+
+        {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {Array.from({ length: itemsPerPage }).map((_, index) => (
+                  <SkeletonCard key={index} />
+              ))}
+            </div>
+        ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {displayedPokemon.map((pokemon) => (
+                    <PokemonCard
+                        key={pokemon.id}
+                        pokemon={pokemon}
+                        onClick={setSelectedPokemon}
+                        favorites={favorites}
+                        setFavorites={setFavorites}
+                    />
+                ))}
+              </div>
+
+              <div className="flex flex-col items-center gap-4 mt-10">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Page {currentPage} of {Math.ceil(totalFiltered.length / itemsPerPage)}
+                </p>
+
+                <Pagination
+                    onPrevious={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    onNext={() => setCurrentPage((p) => p + 1)}
+                    prevUrl={currentPage > 1}
+                    nextUrl={totalFiltered.length > currentPage * itemsPerPage}
+                />
+              </div>
+            </>
+        )}
+
+        <PokemonModal
+            pokemon={selectedPokemon}
+            onClose={() => setSelectedPokemon(null)}
+            favorites={favorites}
+            setFavorites={setFavorites}
+        />
+      </div>
   );
 };
 
