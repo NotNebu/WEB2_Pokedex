@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ThemeContext } from './ThemeContext';
+import { ThemeContext } from '@/components/layout/ThemeContext';
 
 const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(() => {

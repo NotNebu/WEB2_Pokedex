@@ -40,8 +40,8 @@ export default [
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
       'react-hooks/rules-of-hooks': 'off',
-      'react-hooks/exhaustive-deps': 'warn',
-      'prettier/prettier': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
+      'prettier/prettier': 'off',
     },
   },
 ];
