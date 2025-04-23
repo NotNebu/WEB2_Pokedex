@@ -5,6 +5,7 @@ import PokemonHeader from '@/components/modal/PokemonHeader';
 import PokemonStats from '@/components/modal/PokemonStats';
 import PokemonVarieties from '@/components/modal/PokemonVarieties';
 import PokemonEvolution from '@/components/modal/PokemonEvolution';
+import PokemonExtras from '@/components/modal/PokemonExtras';
 
 const typeColors = {
   normal: 'bg-gray-400',
@@ -35,6 +36,7 @@ const PokemonModal = ({ pokemon, onClose, favorites, setFavorites }) => {
   const [varieties, setVarieties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showShiny, setShowShiny] = useState(false);
+  const [extraInfo, setExtraInfo] = useState({});
 
   useEffect(() => {
     setCurrentPokemon(pokemon);
@@ -47,6 +49,7 @@ const PokemonModal = ({ pokemon, onClose, favorites, setFavorites }) => {
       try {
         setLoading(true);
         const speciesRes = await axios.get(currentPokemon.species.url);
+
         const entry = speciesRes.data.flavor_text_entries.find((e) => e.language.name === 'en');
         setFlavorText(entry?.flavor_text.replace(/\f/g, ' ') || '');
 
@@ -62,18 +65,35 @@ const PokemonModal = ({ pokemon, onClose, favorites, setFavorites }) => {
         setEvoIndex(evoArray.findIndex((name) => name === currentPokemon.name));
 
         const forms = await Promise.all(
-          speciesRes.data.varieties.map(async (variant) => {
-            const res = await axios.get(variant.pokemon.url);
-            const sprite =
-              res.data.sprites.other['official-artwork'].front_default ||
-              res.data.sprites.front_default;
-            return {
-              name: variant.pokemon.name,
-              image: sprite,
-            };
-          })
+            speciesRes.data.varieties.map(async (variant) => {
+              const res = await axios.get(variant.pokemon.url);
+              const sprite =
+                  res.data.sprites.other['official-artwork'].front_default ||
+                  res.data.sprites.front_default;
+              return {
+                name: variant.pokemon.name,
+                image: sprite,
+              };
+            })
         );
         setVarieties(forms);
+
+        const genderRate = speciesRes.data.gender_rate;
+        const genderText =
+            genderRate === -1
+                ? 'Genderless'
+                : `${((8 - genderRate) / 8) * 100}% Male / ${(genderRate / 8) * 100}% Female`;
+
+        setExtraInfo({
+          gender: genderText,
+          habitat: speciesRes.data.habitat?.name || 'Unknown',
+          shape: speciesRes.data.shape?.name || 'Unknown',
+          growth: speciesRes.data.growth_rate?.name || 'Unknown',
+          captureRate: speciesRes.data.capture_rate,
+          baseHappiness: speciesRes.data.base_happiness,
+          isLegendary: speciesRes.data.is_legendary,
+          isMythical: speciesRes.data.is_mythical,
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -108,55 +128,58 @@ const PokemonModal = ({ pokemon, onClose, favorites, setFavorites }) => {
   const primaryType = currentPokemon.types[0].type.name;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 px-2">
-      <div className="bg-white text-gray-900 dark:bg-gray-900 dark:text-white max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 rounded-xl shadow-xl relative">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-5 text-xl font-bold text-gray-800 dark:text-white hover:scale-110 transition"
-          aria-label="Close Modal"
-        >
-          ✕
-        </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 px-2">
+        <div className="relative bg-white text-gray-900 dark:bg-gray-900 dark:text-white max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 rounded-xl shadow-xl">
+          {/* ✕ Close button outside the content */}
+          <button
+              onClick={onClose}
+              className="absolute top-4 right-4 w-9 h-9 bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded-full shadow-md flex items-center justify-center hover:scale-110 transition"
+              aria-label="Close Modal"
+          >
+            ✕
+          </button>
 
-        {loading ? (
-          <p className="text-center">Loading Pokémon details...</p>
-        ) : (
-          <>
-            <PokemonHeader
-              currentPokemon={currentPokemon}
-              showShiny={showShiny}
-              setShowShiny={setShowShiny}
-              flavorText={flavorText}
-              favorites={favorites}
-              setFavorites={setFavorites}
-            />
+          {loading ? (
+              <p className="text-center">Loading Pokémon details...</p>
+          ) : (
+              <>
+                <PokemonHeader
+                    currentPokemon={currentPokemon}
+                    showShiny={showShiny}
+                    setShowShiny={setShowShiny}
+                    flavorText={flavorText}
+                    favorites={favorites}
+                    setFavorites={setFavorites}
+                />
 
-            <PokemonStats
-              currentPokemon={currentPokemon}
-              primaryType={primaryType}
-              typeColors={typeColors}
-            />
+                <PokemonStats
+                    currentPokemon={currentPokemon}
+                    primaryType={primaryType}
+                    typeColors={typeColors}
+                />
 
-            {evolution.length > 1 && (
-              <PokemonEvolution
-                currentPokemon={currentPokemon}
-                evolution={evolution}
-                evoIndex={evoIndex}
-                setCurrentPokemon={setCurrentPokemon}
-              />
-            )}
+                <PokemonExtras extraInfo={extraInfo} />
 
-            {varieties.length > 1 && (
-              <PokemonVarieties
-                varieties={varieties}
-                currentPokemon={currentPokemon}
-                setCurrentPokemon={setCurrentPokemon}
-              />
-            )}
-          </>
-        )}
+                {evolution.length > 1 && (
+                    <PokemonEvolution
+                        currentPokemon={currentPokemon}
+                        evolution={evolution}
+                        evoIndex={evoIndex}
+                        setCurrentPokemon={setCurrentPokemon}
+                    />
+                )}
+
+                {varieties.length > 1 && (
+                    <PokemonVarieties
+                        varieties={varieties}
+                        currentPokemon={currentPokemon}
+                        setCurrentPokemon={setCurrentPokemon}
+                    />
+                )}
+              </>
+          )}
+        </div>
       </div>
-    </div>
   );
 };
 

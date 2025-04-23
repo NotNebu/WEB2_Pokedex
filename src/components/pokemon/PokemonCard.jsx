@@ -25,62 +25,92 @@ const typeColors = {
   flying: 'bg-sky-200',
 };
 
-const PokemonCard = ({ pokemon, onClick, favorites = [], setFavorites = () => {} }) => {
+const PokemonCard = ({
+                       pokemon,
+                       onClick,
+                       favorites = [],
+                       setFavorites = () => {},
+                       compareList = [],
+                       toggleCompare = () => {},
+                     }) => {
   const primaryType = pokemon.types[0].type.name;
   const bgColor = typeColors[primaryType] || 'bg-white';
   const isFavorited = favorites.includes(pokemon.name);
+  const isCompared = compareList.some((p) => p.id === pokemon.id);
 
   const toggleFavorite = (e) => {
-    e.stopPropagation(); // Undgå at åbne modal når man klikker stjernen
+    e.stopPropagation();
     isFavorited
-      ? setFavorites(favorites.filter((name) => name !== pokemon.name))
-      : setFavorites([...favorites, pokemon.name]);
+        ? setFavorites(favorites.filter((name) => name !== pokemon.name))
+        : setFavorites([...favorites, pokemon.name]);
+  };
+
+  const handleCompareClick = (e) => {
+    e.stopPropagation();
+    toggleCompare(pokemon);
   };
 
   return (
-    <div
-      onClick={() => onClick && onClick(pokemon)}
-      className={`relative cursor-pointer holo-card text-gray-800 dark:text-white rounded-xl p-4 border flex flex-col items-center space-y-2 ${bgColor}`}
-    >
-      {/* Favorite Star */}
       <div
-        onClick={toggleFavorite}
-        className={`absolute top-2 right-2 text-3xl md:text-4xl z-10 cursor-pointer transition transform hover:scale-110 ${
-          isFavorited
-            ? 'text-yellow-400 drop-shadow'
-            : 'text-gray-400 hover:text-yellow-300 opacity-80'
-        }`}
+          onClick={() => onClick && onClick(pokemon)}
+          className={`relative cursor-pointer holo-card text-gray-800 dark:text-white rounded-xl p-4 border flex flex-col items-center space-y-2 ${bgColor}`}
       >
-        {isFavorited ? '★' : '☆'}
-      </div>
+        {/* Aligned Top Icons using flex */}
+        <div className="absolute top-2 left-2 right-2 px-2 flex justify-between items-center z-10">
+          {/* Compare Icon */}
+          <button
+              onClick={handleCompareClick}
+              className={`text-2xl leading-none transition transform hover:scale-110 ${
+                  isCompared
+                      ? 'text-green-500 font-bold'
+                      : 'text-gray-400 hover:text-green-400 opacity-80'
+              }`}
+              title="Select for Compare"
+          >
+            {isCompared ? '✔' : '⇄'}
+          </button>
 
-      {/* Artwork */}
-      <img
-        src={pokemon.sprites.other['official-artwork'].front_default}
-        alt={pokemon.name}
-        className="w-32 h-32 object-contain poke-img"
-      />
+          {/* Favorite Star */}
+          <button
+              onClick={toggleFavorite}
+              className={`text-3xl leading-none transition transform hover:scale-110 ${
+                  isFavorited
+                      ? 'text-yellow-400 drop-shadow'
+                      : 'text-gray-400 hover:text-yellow-300 opacity-80'
+              }`}
+              title="Add to Favorites"
+          >
+            {isFavorited ? '★' : '☆'}
+          </button>
+        </div>
 
-      {/* ID & Name */}
-      <span className="text-sm bg-white/30 dark:bg-black/30 px-2 py-0.5 rounded-full">
+        {/* Artwork */}
+        <img
+            src={pokemon.sprites.other['official-artwork'].front_default}
+            alt={pokemon.name}
+            className="w-32 h-32 object-contain poke-img"
+        />
+
+        {/* ID & Name */}
+        <span className="text-sm bg-white/30 dark:bg-black/30 px-2 py-0.5 rounded-full">
         #{pokemon.id}
       </span>
-      <h2 className="capitalize font-semibold text-lg bg-white/30 dark:bg-black/30 px-3 py-1 rounded-full">
-        {pokemon.name}
-      </h2>
+        <h2 className="capitalize font-semibold text-lg bg-white/30 dark:bg-black/30 px-3 py-1 rounded-full">
+          {pokemon.name}
+        </h2>
 
-      {/* Type Badges */}
-      <div className="flex gap-2 mt-1">
-        {pokemon.types.map((t) => (
-          <span
-            key={t.type.name}
-            className="text-xs px-2 py-0.5 bg-white/30 dark:bg-black/30 rounded-full capitalize"
-          >
+        {/* Type Badges */}
+        <div className="flex gap-2 mt-1">
+          {pokemon.types.map((t) => (
+              <span
+                  key={t.type.name}
+                  className="text-xs px-2 py-0.5 bg-white/30 dark:bg-black/30 rounded-full capitalize"
+              >
             {t.type.name}
           </span>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
   );
 };
 
